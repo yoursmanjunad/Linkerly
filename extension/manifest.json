@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "URL Shortener",
+  "version": "1.0.0",
+  "description": "Shorten URLs and manage collections.",
+  "permissions": ["storage", "activeTab"],
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Shorten URL"
+  }
+}
