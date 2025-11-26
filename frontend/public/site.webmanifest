@@ -1,0 +1,47 @@
+{
+  "name": "Linkerly - URL Shortener & Link Management",
+  "short_name": "Linkerly",
+  "description": "Manage your URLs like your content. Create, organize, and track shortened links with powerful analytics.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Create Short Link",
+      "short_name": "New Link",
+      "description": "Create a new shortened URL",
+      "url": "/urls/create",
+      "icons": [{
+        "src": "/android-chrome-192x192.png",
+        "sizes": "192x192"
+      }]
+    },
+    {
+      "name": "Analytics",
+      "short_name": "Analytics",
+      "description": "View link analytics",
+      "url": "/analytics",
+      "icons": [{
+        "src": "/android-chrome-192x192.png",
+        "sizes": "192x192"
+      }]
+    }
+  ]
+}

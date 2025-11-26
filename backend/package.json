@@ -1,0 +1,33 @@
+{
+  "name": "linkerly",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Manjunath Irukulla",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@clerk/express": "^1.7.43",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.2.0",
+    "geoip-lite": "^1.4.10",
+    "imagekit": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "nanoid": "^5.1.6",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "qrcode": "^1.5.4",
+    "ua-parser-js": "^2.0.6",
+    "useragent": "^2.3.0",
+    "validator": "^13.15.20",
+    "zod": "^4.1.12"
+  }
+}

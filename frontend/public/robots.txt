@@ -1,0 +1,10 @@
+# Robots.txt for Linkerly
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://linkerly.app/sitemap.xml
