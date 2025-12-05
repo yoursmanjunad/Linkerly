@@ -203,26 +203,37 @@ collectionAnalyticsSchema.methods.aggregateFromUrls = async function(urlAnalytic
     });
 
     // Hour breakdown
-    if (analytics.clicksByHour) {
+    if (analytics.clicksByHour && Array.isArray(analytics.clicksByHour)) {
       analytics.clicksByHour.forEach((count, hour) => {
-        hourTotals[hour] += count;
+        if (hour >= 0 && hour < 24) {
+          hourTotals[hour] += count || 0;
+        }
       });
     }
 
     // Day breakdown
-    if (analytics.clicksByDay) {
+    if (analytics.clicksByDay && Array.isArray(analytics.clicksByDay)) {
       analytics.clicksByDay.forEach((count, day) => {
-        dayTotals[day] += count;
+        if (day >= 0 && day < 7) {
+          dayTotals[day] += count || 0;
+        }
       });
     }
 
     // Date breakdown
-    if (analytics.clicksByDate) {
+    if (analytics.clicksByDate && Array.isArray(analytics.clicksByDate)) {
       analytics.clicksByDate.forEach(entry => {
-        const existing = dateMap.get(entry.date) || { clicks: 0, uniqueVisitors: 0 };
-        existing.clicks += entry.clicks;
+        if (!entry || !entry.date) return;
+        
+        // Ensure date is a string
+        const dateStr = entry.date instanceof Date 
+          ? entry.date.toISOString().split('T')[0] 
+          : String(entry.date);
+
+        const existing = dateMap.get(dateStr) || { clicks: 0, uniqueVisitors: 0 };
+        existing.clicks += entry.clicks || 0;
         existing.uniqueVisitors += entry.uniqueVisitors || 0;
-        dateMap.set(entry.date, existing);
+        dateMap.set(dateStr, existing);
       });
     }
   }
@@ -242,7 +253,11 @@ collectionAnalyticsSchema.methods.aggregateFromUrls = async function(urlAnalytic
     date,
     clicks: data.clicks,
     uniqueVisitors: data.uniqueVisitors
-  })).sort((a, b) => a.date.localeCompare(b.date));
+  })).sort((a, b) => {
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return String(a.date).localeCompare(String(b.date));
+  });
 
   this.lastUpdated = new Date();
   await this.save();
