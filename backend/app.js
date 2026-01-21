@@ -10,6 +10,7 @@ import bookmarkRoutes from "./routes/bookmarks.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import cors from "cors";
 import profileRoutes from "./routes/profile.routes.js";
+import { instagramRouter } from "./routes/instagram.routes.js";
 const app = express();
 
 app.use(express.json());
@@ -32,6 +33,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/api", bookmarkRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/profiles", profileRoutes);
+app.use("/api/instagram", instagramRouter);
 
 // ✅ 2. Add your public collection route before short URL redirect
 app.get("/public/:slug", getPublicCollection);

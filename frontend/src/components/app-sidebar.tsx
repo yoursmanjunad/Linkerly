@@ -11,6 +11,7 @@ import {
   IconHome,
   IconLink,
   IconSettings,
+  IconCamera,
 } from "@tabler/icons-react"
 import { Loader2 } from "lucide-react"
 
@@ -68,6 +69,11 @@ const data = {
       title: "Bookmarks",
       url: "/bookmarks",
       icon: IconBookmark,
+    },
+    {
+      title: "Instagram Backup",
+      url: "/instagram",
+      icon: IconCamera,
     },
     {
       title: "Analytics",

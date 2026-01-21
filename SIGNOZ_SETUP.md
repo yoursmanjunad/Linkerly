@@ -14,8 +14,7 @@ git clone -b main https://github.com/SigNoz/signoz.git
 cd signoz/deploy/docker/clickhouse-setup
 
 # Start SigNoz
-docker-compose up -d
-```
+docker-compose up -
 
 SigNoz UI will be available at: http://localhost:3301
 
