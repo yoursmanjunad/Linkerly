@@ -6,6 +6,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ModeToggle } from "./MoodToggle";
 import { CgProfile } from "react-icons/cg";
 import { useEffect, useState } from "react";
+import { apiBaseUrl } from "@/lib/api";
 
 export function SiteHeader() {
   const [username, setUsername] = useState<string | null>(null);
@@ -15,7 +16,7 @@ export function SiteHeader() {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    fetch("http://localhost:5000/api/users/profile", {
+    fetch(`${apiBaseUrl}/users/profile`, {
       headers: { Authorization: `Bearer ${token}` },
       credentials: "include",
     })

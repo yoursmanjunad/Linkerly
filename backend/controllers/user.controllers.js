@@ -1,6 +1,8 @@
 import { User } from "../models/user.models.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "../utils/email.js";
 
 // Helper function to generate token and set cookie
 const generateTokenAndSetCookie = (userId, userName, res) => {
@@ -198,6 +200,85 @@ export const toggleBookmark = async (req, res) => {
             await user.save();
             res.status(200).json({ message: "Bookmark removed", isBookmarked: false });
         }
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+const buildFrontendBaseUrl = (req) => {
+    if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL;
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "http";
+    const host = req.headers["x-forwarded-host"] || req.get("host");
+    return `${protocol}://${host}`;
+};
+
+export const requestPasswordReset = async (req, res) => {
+    try {
+        const { email, userName } = req.body;
+        if (!email && !userName) {
+            return res.status(400).json({ message: "Email or username is required" });
+        }
+
+        const user = await User.findOne({
+            $or: [
+                email ? { email: email.toLowerCase() } : null,
+                userName ? { userName: userName.toLowerCase() } : null,
+            ].filter(Boolean),
+        }).select("+resetPasswordToken +resetPasswordExpiresAt");
+
+        if (!user) {
+            return res.status(200).json({
+                message: "If an account exists, a reset link has been sent.",
+            });
+        }
+
+        const rawToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+        user.resetPasswordToken = hashedToken;
+        user.resetPasswordExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        await user.save();
+
+        const baseUrl = buildFrontendBaseUrl(req);
+        const resetUrl = `${baseUrl}/reset-password?token=${rawToken}`;
+
+        await sendPasswordResetEmail({
+            to: user.email,
+            userName: user.userName,
+            resetUrl,
+        });
+
+        res.status(200).json({
+            message: "If an account exists, a reset link has been sent.",
+            resetUrl,
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
+
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) {
+            return res.status(400).json({ message: "Token and new password are required" });
+        }
+
+        const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+        const user = await User.findOne({
+            resetPasswordToken: hashedToken,
+            resetPasswordExpiresAt: { $gt: new Date() },
+        }).select("+resetPasswordToken +resetPasswordExpiresAt");
+
+        if (!user) {
+            return res.status(400).json({ message: "Invalid or expired reset token" });
+        }
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresAt = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Password reset successfully" });
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
