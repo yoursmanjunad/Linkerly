@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Upload, X, User } from "lucide-react";
 import { uploadImageToImageKit } from "@/lib/upload-kit";
+import { apiBaseUrl } from "@/lib/api";
 
 interface SignupFormProps extends React.HTMLAttributes<HTMLDivElement> {}
 
@@ -71,7 +72,7 @@ export function SignupForm({ className, ...props }: SignupFormProps) {
     try {
       console.log("Sending request to backend...")
       console.log("Payload:", payload)
-      const res = await fetch("http://localhost:5000/api/users/register", {
+      const res = await fetch(`${apiBaseUrl}/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

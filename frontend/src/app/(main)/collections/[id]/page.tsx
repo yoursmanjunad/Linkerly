@@ -7,6 +7,8 @@ import {
   Calendar, 
   Globe, 
   Smartphone, 
+  Monitor,
+  Tablet,
   BarChart3,
   Settings,
   Link as LinkIcon,
@@ -17,7 +19,8 @@ import {
   Trash2,
   Edit3,
   QrCode,
-  Loader2
+  Loader2,
+  Clock3
 } from "lucide-react";
 import { 
   Dialog, 
@@ -40,6 +43,11 @@ import { toast } from "sonner";
 import { 
   AreaChart, 
   Area, 
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -80,6 +88,7 @@ export default function CollectionDetailsPage() {
   const [settingsPreview, setSettingsPreview] = useState<string | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [period, setPeriod] = useState("30d");
 
   const handleDeleteCollection = async () => {
     try {
@@ -182,7 +191,7 @@ export default function CollectionDetailsPage() {
         // Fetch details and analytics in parallel
         const [detailsRes, analyticsRes] = await Promise.all([
           fetch(`${API}/collections/${id}`, { headers }),
-          fetch(`${API}/collections/${id}/analytics?period=30d`, { headers })
+          fetch(`${API}/collections/${id}/analytics?period=${period}`, { headers })
         ]);
 
         if (!detailsRes.ok) {
@@ -225,7 +234,7 @@ export default function CollectionDetailsPage() {
     };
 
     if (id) fetchData();
-  }, [id, router]);
+  }, [id, period, router]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -361,6 +370,19 @@ export default function CollectionDetailsPage() {
 
           {/* OVERVIEW TAB */}
           <TabsContent value="overview" className="space-y-4 sm:space-y-8 animate-in fade-in-50 duration-500">
+            <div className="flex justify-end">
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="h-9 rounded-md border bg-background px-3 text-sm"
+              >
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+                <option value="all">All time</option>
+              </select>
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
@@ -371,7 +393,7 @@ export default function CollectionDetailsPage() {
                 <CardContent>
                   <div className="text-2xl font-bold">{analyticsData?.summary?.totalClicks || 0}</div>
                   <p className="text-xs text-muted-foreground">
-                    Across all links
+                    {period === "all" ? "Across all links" : `In ${period.replace("d", " days")}`}
                   </p>
                 </CardContent>
               </Card>
@@ -410,9 +432,9 @@ export default function CollectionDetailsPage() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Main Chart */}
-              <Card className="lg:col-span-2 border-primary/10 shadow-sm">
+              <Card className="lg:col-span-3 border-primary/10 shadow-sm">
                 <CardHeader>
                   <CardTitle>Collection Performance</CardTitle>
                   <CardDescription>Aggregated daily clicks over the last 30 days</CardDescription>
@@ -466,38 +488,91 @@ export default function CollectionDetailsPage() {
               </Card>
 
               {/* Device Breakdown */}
-              <Card className="border-primary/10 shadow-sm">
+              <Card className="border-primary/10 shadow-sm lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Devices</CardTitle>
                   <CardDescription>Traffic sources by device type</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData?.deviceBreakdown && Object.entries(analyticsData.deviceBreakdown).map(([device, count]: [string, any]) => {
-                      const total = analyticsData.summary.totalClicks || 1;
-                      const percentage = Math.round((count / total) * 100);
-                      return (
-                        <div key={device} className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="capitalize flex items-center gap-2">
-                              {device === 'mobile' ? <Smartphone className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
-                              {device}
-                            </span>
-                            <span className="font-medium">{percentage}%</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="h-[180px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={Object.entries(analyticsData?.deviceBreakdown || {}).map(([device, count], index) => ({
+                              name: device,
+                              value: Number(count || 0),
+                              fill: ["#3b82f6", "#60a5fa", "#2563eb", "#1d4ed8"][index % 4],
+                            }))}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={42}
+                            outerRadius={68}
+                          >
+                            {Object.entries(analyticsData?.deviceBreakdown || {}).map((_, index) => (
+                              <Cell key={`device-${index}`} fill={["#3b82f6", "#60a5fa", "#2563eb", "#1d4ed8"][index % 4]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="space-y-4">
+                      {analyticsData?.deviceBreakdown && Object.entries(analyticsData.deviceBreakdown).map(([device, count]: [string, any]) => {
+                        const total = analyticsData.summary.totalClicks || 1;
+                        const percentage = Math.round((count / total) * 100);
+                        return (
+                          <div key={device} className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="capitalize flex items-center gap-2">
+                                {device === 'mobile' ? <Smartphone className="h-4 w-4" /> : device === 'desktop' ? <Monitor className="h-4 w-4" /> : device === 'tablet' ? <Tablet className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                                {device}
+                              </span>
+                              <span className="font-medium">{count} ({percentage}%)</span>
+                            </div>
+                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${percentage}%` }} />
+                            </div>
                           </div>
-                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary transition-all duration-500" 
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="border-primary/10 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Clock3 className="h-4 w-4" /> Engagement Patterns</CardTitle>
+                <CardDescription>Clicks by weekday and hour</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day, i) => ({ day, clicks: Number(analyticsData?.clicksByDay?.[i] || 0) }))}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <Tooltip />
+                      <Bar dataKey="clicks" fill="#3b82f6" radius={[4,4,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={Array.from({ length: 24 }, (_, h) => ({ hour: `${h.toString().padStart(2, "0")}:00`, clicks: Number(analyticsData?.clicksByHour?.[h] || 0) }))}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={2} tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="clicks" stroke="#2563eb" fill="#dbeafe" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Top Links in Collection */}
             <Card className="border-primary/10 shadow-sm">

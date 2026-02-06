@@ -30,7 +30,15 @@ const userSchema = new mongoose.Schema({
       url: String
     }
   ],
-   bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Collection" }]
+   bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Collection" }],
+  resetPasswordToken: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpiresAt: {
+    type: Date,
+    select: false
+  }
 }, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);

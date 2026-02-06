@@ -468,6 +468,8 @@ export const getCollectionAnalytics = async (req, res) => {
       );
     }
 
+    const periodClicks = filteredClicks.reduce((sum, entry) => sum + (entry.clicks || 0), 0);
+
     // Get top performing links
     const topLinks = collectionAnalytics.getTopLinks(10);
     
@@ -488,11 +490,12 @@ export const getCollectionAnalytics = async (req, res) => {
       success: true,
       data: {
         summary: {
-          totalClicks: collectionAnalytics.totalClicks,
+          totalClicks: periodClicks,
+          totalClicksAllTime: collectionAnalytics.totalClicks,
           uniqueVisitors: collectionAnalytics.uniqueVisitors,
           totalLinks: collection.linkCount,
           averageClicksPerLink: collection.linkCount > 0 
-            ? (collectionAnalytics.totalClicks / collection.linkCount).toFixed(2) 
+            ? (periodClicks / collection.linkCount).toFixed(2) 
             : 0
         },
         clicksByDate: filteredClicks,

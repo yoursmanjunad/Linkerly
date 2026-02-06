@@ -49,6 +49,20 @@ import {
   DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -824,7 +838,43 @@ function UrlAnalytics({ analyticsData }: any) {
     );
   }
 
-  const { summary, deviceBreakdown, topCountries, topReferrers } = analyticsData;
+  const {
+    summary,
+    deviceBreakdown = {},
+    topCountries = {},
+    topReferrers = {},
+    clicksByDate = [],
+    clicksByDay = [],
+    clicksByHour = [],
+  } = analyticsData;
+
+  const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const weekdayData = dayLabels.map((day, index) => ({
+    day,
+    clicks: Number(clicksByDay[index] || 0),
+  }));
+
+  const hourlyData = Array.from({ length: 24 }, (_, hour) => ({
+    hour: `${hour.toString().padStart(2, "0")}:00`,
+    clicks: Number(clicksByHour[hour] || 0),
+  }));
+
+  const sortedCountries = Object.entries(topCountries)
+    .sort((a: any, b: any) => b[1] - a[1])
+    .slice(0, 5);
+
+  const sortedReferrers = Object.entries(topReferrers)
+    .sort((a: any, b: any) => b[1] - a[1])
+    .slice(0, 5);
+
+  const deviceEntries = Object.entries(deviceBreakdown);
+  const deviceTotal = deviceEntries.reduce((sum: number, [, count]) => sum + Number(count || 0), 0);
+  const deviceChartData = deviceEntries.map(([device, count], index) => ({
+    device,
+    clicks: Number(count || 0),
+    fill: ["#3b82f6", "#60a5fa", "#2563eb", "#1d4ed8"][index % 4],
+  }));
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -877,36 +927,106 @@ function UrlAnalytics({ analyticsData }: any) {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Device Breakdown */}
-        <Card className="border-border shadow-sm lg:col-span-1 bg-card">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <Card className="border-border shadow-sm lg:col-span-3 bg-card">
           <CardHeader>
-            <CardTitle className="text-foreground">Devices</CardTitle>
+            <CardTitle className="text-foreground">Clicks Trend</CardTitle>
+            <CardDescription>Daily clicks for this short URL</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[280px] pl-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={clicksByDate}>
+                <defs>
+                  <linearGradient id="urlClicksFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) =>
+                    new Date(value).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                  }
+                />
+                <YAxis tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="clicks" stroke="#3b82f6" fill="url(#urlClicksFill)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border shadow-sm lg:col-span-2 bg-card">
+          <CardHeader>
+            <CardTitle className="text-foreground">Device Split</CardTitle>
+            <CardDescription>Distribution by device type</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={deviceChartData} dataKey="clicks" nameKey="device" innerRadius={45} outerRadius={70}>
+                    {deviceChartData.map((entry: any, index: number) => (
+                      <Cell key={`device-cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-2">
+              {deviceChartData.map((entry: any) => {
+                const percentage = deviceTotal > 0 ? Math.round((entry.clicks / deviceTotal) * 100) : 0;
+                return (
+                  <div key={entry.device} className="flex items-center justify-between text-sm">
+                    <span className="capitalize text-muted-foreground">{entry.device}</span>
+                    <span className="font-medium">{entry.clicks} ({percentage}%)</span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-border shadow-sm lg:col-span-3 bg-card">
+          <CardHeader>
+            <CardTitle className="text-foreground">Best Time to Share</CardTitle>
+            <CardDescription>Clicks by day of week and hour of day</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Smartphone className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium text-foreground">Mobile</span>
-                </div>
-                <span className="font-bold text-foreground">{deviceBreakdown?.mobile || 0}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Monitor className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium text-foreground">Desktop</span>
-                </div>
-                <span className="font-bold text-foreground">{deviceBreakdown?.desktop || 0}</span>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Tablet className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium text-foreground">Tablet</span>
-                </div>
-                <span className="font-bold text-foreground">{deviceBreakdown?.tablet || 0}</span>
-              </div>
-            </div>
+            <Tabs defaultValue="weekday" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="weekday">Weekday</TabsTrigger>
+                <TabsTrigger value="hourly">Hourly</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="weekday" className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={weekdayData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <Tooltip />
+                    <Bar dataKey="clicks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </TabsContent>
+
+              <TabsContent value="hourly" className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={hourlyData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={2} tickLine={false} axisLine={false} />
+                    <YAxis tickLine={false} axisLine={false} />
+                    <Tooltip />
+                    <Area type="monotone" dataKey="clicks" stroke="#2563eb" fill="#dbeafe" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
 
@@ -916,9 +1036,9 @@ function UrlAnalytics({ analyticsData }: any) {
             <CardTitle className="text-foreground">Top Countries</CardTitle>
           </CardHeader>
           <CardContent>
-            {topCountries && Object.keys(topCountries).length > 0 ? (
+            {sortedCountries.length > 0 ? (
               <div className="space-y-3">
-                {Object.entries(topCountries).slice(0, 5).map(([country, count]: [string, any], i) => (
+                {sortedCountries.map(([country, count]: [string, any], i) => (
                   <div key={country} className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground w-6">{i + 1}.</span>
@@ -943,9 +1063,9 @@ function UrlAnalytics({ analyticsData }: any) {
             <CardTitle className="text-foreground">Top Referrers</CardTitle>
           </CardHeader>
           <CardContent>
-            {topReferrers && Object.keys(topReferrers).length > 0 ? (
+            {sortedReferrers.length > 0 ? (
               <div className="space-y-3">
-                {Object.entries(topReferrers).slice(0, 5).map(([referrer, count]: [string, any], i) => (
+                {sortedReferrers.map(([referrer, count]: [string, any], i) => (
                   <div key={referrer} className="flex items-center justify-between">
                     <div className="flex items-center gap-2 overflow-hidden">
                       <span className="text-sm font-medium text-muted-foreground w-6 shrink-0">{i + 1}.</span>
