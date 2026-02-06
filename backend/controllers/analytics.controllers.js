@@ -178,6 +178,7 @@ export const getUrlAnalytics = async (req, res) => {
     };
 
     const clickGrowth = calculateGrowth(filteredClicks);
+    const periodClicks = filteredClicks.reduce((sum, d) => sum + (d.clicks || 0), 0);
 
     // Convert Maps to plain objects first to avoid serialization issues
     const browserObj = analytics.browserBreakdown instanceof Map 
@@ -225,11 +226,12 @@ export const getUrlAnalytics = async (req, res) => {
       success: true,
       data: {
         summary: {
-          totalClicks: analytics.totalClicks,
+          totalClicks: periodClicks,
+          totalClicksAllTime: analytics.totalClicks,
           uniqueVisitors: analytics.uniqueVisitors,
           clickGrowth: parseFloat(clickGrowth.toFixed(2)),
           averageClicksPerDay: filteredClicks.length > 0 
-            ? (filteredClicks.reduce((sum, d) => sum + d.clicks, 0) / filteredClicks.length).toFixed(2)
+            ? (periodClicks / filteredClicks.length).toFixed(2)
             : 0
         },
         clicksByDate: filteredClicks,

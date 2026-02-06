@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import {
   ExternalLink,
-  Share2,
+  Copy,
   Clock,
   Link2,
   Sparkles,
@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { UrlImagePlaceholder } from "@/components/url-image-placeholder";
+import { apiBaseUrl } from "@/lib/api";
 
 export default function PublicCollectionPage() {
   const { slug } = useParams();
@@ -38,8 +39,9 @@ export default function PublicCollectionPage() {
   const [passwordInput, setPasswordInput] = useState("");
   const [submittingPassword, setSubmittingPassword] = useState(false);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-  const SHORT_BASE_URL = process.env.NEXT_PUBLIC_SHORT_BASE_URL;
+  const API_BASE = apiBaseUrl;
+  const API_ROOT = API_BASE.replace(/\/api\/?$/, "");
+  const SHORT_BASE_URL = process.env.NEXT_PUBLIC_SHORT_BASE_URL || API_ROOT;
 
   const getDomain = (url: string) => {
     try {
@@ -51,10 +53,14 @@ export default function PublicCollectionPage() {
   };
 
   const fetchCollection = (pwd?: string) => {
-    if (!API_BASE || !slug) return;
-    
+    if (!slug) {
+      setLoading(false);
+      setError(true);
+      return;
+    }
+
     setLoading(true);
-    const baseUrl = API_BASE.replace("/api", "");
+    const baseUrl = API_ROOT;
     const url = pwd 
       ? `${baseUrl}/c/${slug}?password=${encodeURIComponent(pwd)}`
       : `${baseUrl}/c/${slug}`;
@@ -95,7 +101,7 @@ export default function PublicCollectionPage() {
 
   useEffect(() => {
     fetchCollection();
-  }, [slug, API_BASE]);
+  }, [slug, API_ROOT]);
 
   useEffect(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -307,7 +313,7 @@ export default function PublicCollectionPage() {
                 {shareSuccess ? (
                   <CheckCircle2 className="h-4 w-4 animate-in zoom-in-50 duration-200 text-green-500" />
                 ) : (
-                  <Share2 className="h-4 w-4" />
+                  <Copy className="h-4 w-4" />
                 )}
               </Button>
             </div>

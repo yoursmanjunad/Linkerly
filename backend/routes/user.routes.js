@@ -6,7 +6,9 @@ import {
   getCurrentUser,
   updateAccountDetails,
   changeCurrentPassword,
-  toggleBookmark
+  toggleBookmark,
+  requestPasswordReset,
+  resetPassword
 } from "../controllers/user.controllers.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -19,6 +21,8 @@ userRouter.get("/profile", authMiddleware, getCurrentUser);
 userRouter.put("/update-account", authMiddleware, updateAccountDetails);
 userRouter.post("/change-password", authMiddleware, changeCurrentPassword);
 userRouter.post("/toggle-bookmark", authMiddleware, toggleBookmark);
+userRouter.post("/forgot-password", requestPasswordReset);
+userRouter.post("/reset-password", resetPassword);
 
 
 export { userRouter };

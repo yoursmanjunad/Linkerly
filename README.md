@@ -194,6 +194,26 @@ Unlike simple URL shorteners, Linkerly is:
 - Organize links into collections  
 - Manage user profile and settings  
 
+## Docker (Full Stack)
+
+1. Copy the environment template and fill in secrets as needed:
+
+```bash
+cp .env.example .env
+```
+
+2. Build and start the stack:
+
+```bash
+docker compose up --build
+```
+
+This will start:
+
+- Backend API on http://localhost:5000  
+- Frontend on http://localhost:3000  
+- MongoDB on localhost:27017  
+
 
 ## Screenshots
 

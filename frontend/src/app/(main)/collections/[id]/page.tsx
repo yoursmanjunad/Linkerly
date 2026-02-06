@@ -7,6 +7,8 @@ import {
   Calendar, 
   Globe, 
   Smartphone, 
+  Monitor,
+  Tablet,
   BarChart3,
   Settings,
   Link as LinkIcon,
@@ -17,7 +19,8 @@ import {
   Trash2,
   Edit3,
   QrCode,
-  Loader2
+  Loader2,
+  Clock3
 } from "lucide-react";
 import { 
   Dialog, 
@@ -40,6 +43,11 @@ import { toast } from "sonner";
 import { 
   AreaChart, 
   Area, 
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -55,8 +63,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import { apiBaseUrl } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = apiBaseUrl;
 
 export default function CollectionDetailsPage() {
   const params = useParams();
@@ -80,6 +89,7 @@ export default function CollectionDetailsPage() {
   const [settingsPreview, setSettingsPreview] = useState<string | null>(null);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [period, setPeriod] = useState("30d");
 
   const handleDeleteCollection = async () => {
     try {
@@ -104,7 +114,7 @@ export default function CollectionDetailsPage() {
     try {
       // Use the public collection URL
       const publicUrl = `${window.location.origin}/c/${collectionData.slug}`;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/url/qrcode?url=${encodeURIComponent(publicUrl)}`);
+      const res = await fetch(`${API}/url/qrcode?url=${encodeURIComponent(publicUrl)}`);
       const data = await res.json();
       if (data.success) {
         setQrCodeData(data.data);
@@ -134,7 +144,7 @@ export default function CollectionDetailsPage() {
         }
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections/${id}`, {
+      const res = await fetch(`${API}/collections/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -182,7 +192,7 @@ export default function CollectionDetailsPage() {
         // Fetch details and analytics in parallel
         const [detailsRes, analyticsRes] = await Promise.all([
           fetch(`${API}/collections/${id}`, { headers }),
-          fetch(`${API}/collections/${id}/analytics?period=30d`, { headers })
+          fetch(`${API}/collections/${id}/analytics?period=${period}`, { headers })
         ]);
 
         if (!detailsRes.ok) {
@@ -225,7 +235,7 @@ export default function CollectionDetailsPage() {
     };
 
     if (id) fetchData();
-  }, [id, router]);
+  }, [id, period, router]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -293,7 +303,7 @@ export default function CollectionDetailsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-2 w-full sm:w-auto">
               <div className="hidden md:flex items-center bg-muted/50 rounded-full px-4 py-1.5 border max-w-full overflow-hidden">
                 <span className="text-xs sm:text-sm font-medium text-muted-foreground mr-2 truncate">
                   {typeof window !== 'undefined' ? `${window.location.host}/c/${collectionData.slug}` : `/c/${collectionData.slug}`}
@@ -311,32 +321,46 @@ export default function CollectionDetailsPage() {
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <Button variant="outline" size="sm" className="flex-shrink-0" onClick={handleShowQrCode}>
-                <QrCode className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">QR Code</span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Edit3 className="mr-2 h-4 w-4" />
-                    Edit Collection
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-destructive"
-                    onClick={() => setDeleteDialogOpen(true)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Collection
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => {
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${collectionData.slug}` : '';
+                    navigator.clipboard.writeText(url);
+                    toast.success("Collection link copied!");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={handleShowQrCode}>
+                  <QrCode className="h-4 w-4 sm:mr-2" />
+                  <span className="sm:inline">QR Code</span>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="flex-shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <Edit3 className="mr-2 h-4 w-4" />
+                      Edit Collection
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-destructive"
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Collection
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
@@ -361,6 +385,23 @@ export default function CollectionDetailsPage() {
 
           {/* OVERVIEW TAB */}
           <TabsContent value="overview" className="space-y-4 sm:space-y-8 animate-in fade-in-50 duration-500">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold">Overview</h2>
+                <p className="text-xs text-muted-foreground">Keep an eye on collection performance.</p>
+              </div>
+              <select
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+                className="h-9 rounded-md border bg-background px-3 text-sm w-full sm:w-auto"
+              >
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="90d">Last 90 days</option>
+                <option value="all">All time</option>
+              </select>
+            </div>
+
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <Card className="bg-card/50 backdrop-blur-sm border-primary/10">
@@ -371,7 +412,10 @@ export default function CollectionDetailsPage() {
                 <CardContent>
                   <div className="text-2xl font-bold">{analyticsData?.summary?.totalClicks || 0}</div>
                   <p className="text-xs text-muted-foreground">
-                    Across all links
+                    {period === "all" ? "Across all links" : `In ${period.replace("d", " days")}`}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/80 mt-1">
+                    All time: {analyticsData?.summary?.totalClicksAllTime || analyticsData?.summary?.totalClicks || 0}
                   </p>
                 </CardContent>
               </Card>
@@ -410,94 +454,165 @@ export default function CollectionDetailsPage() {
             </div>
 
             {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Main Chart */}
-              <Card className="lg:col-span-2 border-primary/10 shadow-sm">
+              <Card className="lg:col-span-3 border-primary/10 shadow-sm">
                 <CardHeader>
                   <CardTitle>Collection Performance</CardTitle>
-                  <CardDescription>Aggregated daily clicks over the last 30 days</CardDescription>
+                  <CardDescription>
+                    {period === "all"
+                      ? "All-time daily clicks for this collection"
+                      : `Aggregated daily clicks over the last ${period.replace("d", " days")}`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="pl-0">
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={analyticsData?.clicksByDate || []}>
-                        <defs>
-                          <linearGradient id="colorClicksCol" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis 
-                          dataKey="date" 
-                          stroke="hsl(var(--muted-foreground))" 
-                          fontSize={12}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                        />
-                        <YAxis 
-                          stroke="hsl(var(--muted-foreground))" 
-                          fontSize={12}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value) => `${value}`}
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: "hsl(var(--background))", 
-                            borderColor: "hsl(var(--border))",
-                            borderRadius: "8px"
-                          }}
-                          itemStyle={{ color: "hsl(var(--foreground))" }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="clicks" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={2}
-                          fillOpacity={1} 
-                          fill="url(#colorClicksCol)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {analyticsData?.clicksByDate?.length ? (
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={analyticsData?.clicksByDate || []}>
+                          <defs>
+                            <linearGradient id="colorClicksCol" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                          <XAxis 
+                            dataKey="date" 
+                            stroke="hsl(var(--muted-foreground))" 
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          />
+                          <YAxis 
+                            stroke="hsl(var(--muted-foreground))" 
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: "hsl(var(--background))", 
+                              borderColor: "hsl(var(--border))",
+                              borderRadius: "8px"
+                            }}
+                            itemStyle={{ color: "hsl(var(--foreground))" }}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="clicks" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2}
+                            fillOpacity={1} 
+                            fill="url(#colorClicksCol)" 
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground text-sm">
+                      <BarChart3 className="h-6 w-6 mb-2 opacity-60" />
+                      No clicks yet for this period.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
               {/* Device Breakdown */}
-              <Card className="border-primary/10 shadow-sm">
+              <Card className="border-primary/10 shadow-sm lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Devices</CardTitle>
                   <CardDescription>Traffic sources by device type</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {analyticsData?.deviceBreakdown && Object.entries(analyticsData.deviceBreakdown).map(([device, count]: [string, any]) => {
-                      const total = analyticsData.summary.totalClicks || 1;
-                      const percentage = Math.round((count / total) * 100);
-                      return (
-                        <div key={device} className="space-y-2">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="capitalize flex items-center gap-2">
-                              {device === 'mobile' ? <Smartphone className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
-                              {device}
-                            </span>
-                            <span className="font-medium">{percentage}%</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="h-[180px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={Object.entries(analyticsData?.deviceBreakdown || {}).map(([device, count], index) => ({
+                              name: device,
+                              value: Number(count || 0),
+                              fill: ["#3b82f6", "#60a5fa", "#2563eb", "#1d4ed8"][index % 4],
+                            }))}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={42}
+                            outerRadius={68}
+                          >
+                            {Object.entries(analyticsData?.deviceBreakdown || {}).map((_, index) => (
+                              <Cell key={`device-${index}`} fill={["#3b82f6", "#60a5fa", "#2563eb", "#1d4ed8"][index % 4]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="space-y-4">
+                      {analyticsData?.deviceBreakdown && Object.entries(analyticsData.deviceBreakdown).length > 0 ? (
+                        Object.entries(analyticsData.deviceBreakdown).map(([device, count]: [string, any]) => {
+                        const total = analyticsData.summary.totalClicks || 1;
+                        const percentage = Math.round((count / total) * 100);
+                        return (
+                          <div key={device} className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="capitalize flex items-center gap-2">
+                                {device === 'mobile' ? <Smartphone className="h-4 w-4" /> : device === 'desktop' ? <Monitor className="h-4 w-4" /> : device === 'tablet' ? <Tablet className="h-4 w-4" /> : <Globe className="h-4 w-4" />}
+                                {device}
+                              </span>
+                              <span className="font-medium">{count} ({percentage}%)</span>
+                            </div>
+                            <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${percentage}%` }} />
+                            </div>
                           </div>
-                          <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary transition-all duration-500" 
-                              style={{ width: `${percentage}%` }}
-                            />
-                          </div>
+                        );
+                      })
+                      ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-sm text-muted-foreground">
+                          <Monitor className="h-5 w-5 mb-2 opacity-60" />
+                          No device data yet.
                         </div>
-                      );
-                    })}
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            <Card className="border-primary/10 shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Clock3 className="h-4 w-4" /> Engagement Patterns</CardTitle>
+                <CardDescription>Clicks by weekday and hour</CardDescription>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day, i) => ({ day, clicks: Number(analyticsData?.clicksByDay?.[i] || 0) }))}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <Tooltip />
+                      <Bar dataKey="clicks" fill="#3b82f6" radius={[4,4,0,0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={Array.from({ length: 24 }, (_, h) => ({ hour: `${h.toString().padStart(2, "0")}:00`, clicks: Number(analyticsData?.clicksByHour?.[h] || 0) }))}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={2} tickLine={false} axisLine={false} />
+                      <YAxis tickLine={false} axisLine={false} />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="clicks" stroke="#2563eb" fill="#dbeafe" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Top Links in Collection */}
             <Card className="border-primary/10 shadow-sm">

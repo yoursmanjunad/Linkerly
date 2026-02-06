@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, Link2, Sparkles } from "lucide-react";
+import { apiBaseUrl } from "@/lib/api";
 
 type Props = {
   username: string;
@@ -24,7 +25,7 @@ export default function ProfileCollectionsGridB({
   const [data, setData] = useState<any[]>([]);
   const [meta, setMeta] = useState<any>({});
   const [loading, setLoading] = useState(true);
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = apiBaseUrl;
 
   useEffect(() => {
     if (!username) return;

@@ -12,7 +12,7 @@ import {
   MapPin,
   Link2,
   Calendar,
-  Share2,
+  Copy,
   Mail,
   Globe,
   Github,
@@ -28,6 +28,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { apiBaseUrl } from "@/lib/api";
 
 const SOCIAL_ICONS: Record<string, any> = {
   website: Globe,
@@ -96,7 +97,7 @@ export default function PublicProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API = process.env.NEXT_PUBLIC_API_URL;
+  const API = apiBaseUrl;
 
   useEffect(() => {
     if (!username) {
@@ -105,11 +106,6 @@ export default function PublicProfilePage() {
       return;
     }
 
-    if (!API) {
-      setError("API URL not configured");
-      setLoading(false);
-      return;
-    }
 
     let isMounted = true;
 
@@ -172,7 +168,7 @@ export default function PublicProfilePage() {
       }
     } catch (err: any) {
       if (err.name !== "AbortError") {
-        toast.error("Failed to share");
+        toast.error("Failed to copy profile link");
       }
     }
   };
@@ -260,7 +256,7 @@ export default function PublicProfilePage() {
             onClick={handleShare}
             className="rounded-full backdrop-blur-xl bg-background/95 hover:bg-background shadow-xl border h-12 w-12 hover:scale-110 transition-transform"
           >
-            <Share2 className="h-5 w-5" />
+            <Copy className="h-5 w-5" />
           </Button>
         </div>
       </div>
