@@ -17,7 +17,6 @@ import {
   Activity,
   Clock,
   Download,
-  Share2,
 } from "lucide-react";
 import {
   IconLoader,
@@ -497,8 +496,8 @@ export default function UrlDetailsPage() {
               onClick={() => handleCopy(fullShort, "Short URL copied!")}
               className="gap-2"
             >
-              <Share2 className="h-3.5 w-3.5" />
-              Share
+              <Copy className="h-3.5 w-3.5" />
+              Copy Link
             </Button>
           </div>
         </div>

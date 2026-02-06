@@ -63,8 +63,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog";
+import { apiBaseUrl } from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+const API = apiBaseUrl;
 
 export default function CollectionDetailsPage() {
   const params = useParams();
@@ -113,7 +114,7 @@ export default function CollectionDetailsPage() {
     try {
       // Use the public collection URL
       const publicUrl = `${window.location.origin}/c/${collectionData.slug}`;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/url/qrcode?url=${encodeURIComponent(publicUrl)}`);
+      const res = await fetch(`${API}/url/qrcode?url=${encodeURIComponent(publicUrl)}`);
       const data = await res.json();
       if (data.success) {
         setQrCodeData(data.data);
@@ -143,7 +144,7 @@ export default function CollectionDetailsPage() {
         }
       }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/collections/${id}`, {
+      const res = await fetch(`${API}/collections/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -302,7 +303,7 @@ export default function CollectionDetailsPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-2 w-full sm:w-auto">
               <div className="hidden md:flex items-center bg-muted/50 rounded-full px-4 py-1.5 border max-w-full overflow-hidden">
                 <span className="text-xs sm:text-sm font-medium text-muted-foreground mr-2 truncate">
                   {typeof window !== 'undefined' ? `${window.location.host}/c/${collectionData.slug}` : `/c/${collectionData.slug}`}
@@ -320,32 +321,46 @@ export default function CollectionDetailsPage() {
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <Button variant="outline" size="sm" className="flex-shrink-0" onClick={handleShowQrCode}>
-                <QrCode className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">QR Code</span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Edit3 className="mr-2 h-4 w-4" />
-                    Edit Collection
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-destructive"
-                    onClick={() => setDeleteDialogOpen(true)}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Collection
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="md:hidden"
+                  onClick={() => {
+                    const url = typeof window !== 'undefined' ? `${window.location.origin}/c/${collectionData.slug}` : '';
+                    navigator.clipboard.writeText(url);
+                    toast.success("Collection link copied!");
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={handleShowQrCode}>
+                  <QrCode className="h-4 w-4 sm:mr-2" />
+                  <span className="sm:inline">QR Code</span>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="flex-shrink-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <Edit3 className="mr-2 h-4 w-4" />
+                      Edit Collection
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="text-destructive"
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Collection
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
@@ -437,53 +452,64 @@ export default function CollectionDetailsPage() {
               <Card className="lg:col-span-3 border-primary/10 shadow-sm">
                 <CardHeader>
                   <CardTitle>Collection Performance</CardTitle>
-                  <CardDescription>Aggregated daily clicks over the last 30 days</CardDescription>
+                  <CardDescription>
+                    {period === "all"
+                      ? "All-time daily clicks for this collection"
+                      : `Aggregated daily clicks over the last ${period.replace("d", " days")}`}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="pl-0">
-                  <div className="h-[300px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={analyticsData?.clicksByDate || []}>
-                        <defs>
-                          <linearGradient id="colorClicksCol" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis 
-                          dataKey="date" 
-                          stroke="hsl(var(--muted-foreground))" 
-                          fontSize={12}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                        />
-                        <YAxis 
-                          stroke="hsl(var(--muted-foreground))" 
-                          fontSize={12}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(value) => `${value}`}
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: "hsl(var(--background))", 
-                            borderColor: "hsl(var(--border))",
-                            borderRadius: "8px"
-                          }}
-                          itemStyle={{ color: "hsl(var(--foreground))" }}
-                        />
-                        <Area 
-                          type="monotone" 
-                          dataKey="clicks" 
-                          stroke="hsl(var(--primary))" 
-                          strokeWidth={2}
-                          fillOpacity={1} 
-                          fill="url(#colorClicksCol)" 
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  {analyticsData?.clicksByDate?.length ? (
+                    <div className="h-[300px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={analyticsData?.clicksByDate || []}>
+                          <defs>
+                            <linearGradient id="colorClicksCol" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                          <XAxis 
+                            dataKey="date" 
+                            stroke="hsl(var(--muted-foreground))" 
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                          />
+                          <YAxis 
+                            stroke="hsl(var(--muted-foreground))" 
+                            fontSize={12}
+                            tickLine={false}
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}`}
+                          />
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: "hsl(var(--background))", 
+                              borderColor: "hsl(var(--border))",
+                              borderRadius: "8px"
+                            }}
+                            itemStyle={{ color: "hsl(var(--foreground))" }}
+                          />
+                          <Area 
+                            type="monotone" 
+                            dataKey="clicks" 
+                            stroke="hsl(var(--primary))" 
+                            strokeWidth={2}
+                            fillOpacity={1} 
+                            fill="url(#colorClicksCol)" 
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground text-sm">
+                      <BarChart3 className="h-6 w-6 mb-2 opacity-60" />
+                      No clicks yet for this period.
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
