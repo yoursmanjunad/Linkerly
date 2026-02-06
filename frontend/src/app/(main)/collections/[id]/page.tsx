@@ -385,15 +385,11 @@ export default function CollectionDetailsPage() {
 
           {/* OVERVIEW TAB */}
           <TabsContent value="overview" className="space-y-4 sm:space-y-8 animate-in fade-in-50 duration-500">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="space-y-1">
-                <h2 className="text-lg font-semibold">Overview</h2>
-                <p className="text-xs text-muted-foreground">Keep an eye on collection performance.</p>
-              </div>
+            <div className="flex justify-end">
               <select
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
-                className="h-9 rounded-md border bg-background px-3 text-sm w-full sm:w-auto"
+                className="h-9 rounded-md border bg-background px-3 text-sm"
               >
                 <option value="7d">Last 7 days</option>
                 <option value="30d">Last 30 days</option>
@@ -413,9 +409,6 @@ export default function CollectionDetailsPage() {
                   <div className="text-2xl font-bold">{analyticsData?.summary?.totalClicks || 0}</div>
                   <p className="text-xs text-muted-foreground">
                     {period === "all" ? "Across all links" : `In ${period.replace("d", " days")}`}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground/80 mt-1">
-                    All time: {analyticsData?.summary?.totalClicksAllTime || analyticsData?.summary?.totalClicks || 0}
                   </p>
                 </CardContent>
               </Card>
@@ -552,8 +545,7 @@ export default function CollectionDetailsPage() {
                     </div>
 
                     <div className="space-y-4">
-                      {analyticsData?.deviceBreakdown && Object.entries(analyticsData.deviceBreakdown).length > 0 ? (
-                        Object.entries(analyticsData.deviceBreakdown).map(([device, count]: [string, any]) => {
+                      {analyticsData?.deviceBreakdown && Object.entries(analyticsData.deviceBreakdown).map(([device, count]: [string, any]) => {
                         const total = analyticsData.summary.totalClicks || 1;
                         const percentage = Math.round((count / total) * 100);
                         return (
@@ -570,13 +562,7 @@ export default function CollectionDetailsPage() {
                             </div>
                           </div>
                         );
-                      })
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full text-sm text-muted-foreground">
-                          <Monitor className="h-5 w-5 mb-2 opacity-60" />
-                          No device data yet.
-                        </div>
-                      )}
+                      })}
                     </div>
                   </div>
                 </CardContent>
