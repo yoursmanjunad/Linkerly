@@ -6,6 +6,53 @@ In today’s digital world, links are shared everywhere — across social media,
 
 Linkerly transforms links into **powerful, trackable, and manageable marketing assets**.
 
+## Screenshots
+
+This is how the application looks and works:
+
+- Home Page (Create Collections and URLs)  
+  ![Home Page](./Assets/Create%20Collection%20and%20URLs.png)
+
+- URL Creation on Home  
+  ![Create URL on Home](./Assets/Create%20URL%20on%20Home.png)
+
+- Collection Creation  
+  ![Collection Creation](./Assets/Create%20Collection%20on%20Home.png)
+
+- Collection Preview  
+  ![Collection Preview](./Assets/Collection%20Preview.png)
+
+- Collections Page  
+  ![Collections Page](./Assets/Collections%20Page.png)
+
+- Create URL on URLs Page  
+  ![Create URL on URLs Page](./Assets/Create%20URL%20on%20URLs%20Page.png)
+
+- Creating Collection and Adding a URL  
+  ![Add URL to Collection](./Assets/Home%20Create%20and%20Add%20URL%20to%20Collection.png)
+
+- Added New URL to Collection  
+  ![Added URL](./Assets/Added%20New%20URL%20to%20Collection.png)
+
+- Bulk URL Creation  
+  ![Bulk URL Creation](./Assets/Bulk%20URL%20Creation.png)
+
+- Saved Collections by User  
+  ![Saved Collections](./Assets/Saved%20Collections%20by%20User.png)
+
+- URLs Page  
+  ![URLs Page](./Assets/URLs%20Page.png)
+
+- URLs Page After Bulk Creation  
+  ![URLs Page After Bulk](./Assets/URLs%20Page%20after%20Bulk%20Creation.png)
+
+- User Profile Settings  
+  ![Profile Settings](./Assets/User%20Profile%20Settings.png)
+
+- User Profile  
+  ![User Profile](./Assets/User%20Profile.png)
+
+
 
 ## The Problem
 
@@ -214,52 +261,6 @@ This will start:
 - Frontend on http://localhost:3000  
 - MongoDB on localhost:27017  
 
-
-## Screenshots
-
-This is how the application looks and works:
-
-- Home Page (Create Collections and URLs)  
-  ![Home Page](./Assets/Create%20Collection%20and%20URLs.png)
-
-- URL Creation on Home  
-  ![Create URL on Home](./Assets/Create%20URL%20on%20Home.png)
-
-- Collection Creation  
-  ![Collection Creation](./Assets/Create%20Collection%20on%20Home.png)
-
-- Collection Preview  
-  ![Collection Preview](./Assets/Collection%20Preview.png)
-
-- Collections Page  
-  ![Collections Page](./Assets/Collections%20Page.png)
-
-- Create URL on URLs Page  
-  ![Create URL on URLs Page](./Assets/Create%20URL%20on%20URLs%20Page.png)
-
-- Creating Collection and Adding a URL  
-  ![Add URL to Collection](./Assets/Home%20Create%20and%20Add%20URL%20to%20Collection.png)
-
-- Added New URL to Collection  
-  ![Added URL](./Assets/Added%20New%20URL%20to%20Collection.png)
-
-- Bulk URL Creation  
-  ![Bulk URL Creation](./Assets/Bulk%20URL%20Creation.png)
-
-- Saved Collections by User  
-  ![Saved Collections](./Assets/Saved%20Collections%20by%20User.png)
-
-- URLs Page  
-  ![URLs Page](./Assets/URLs%20Page.png)
-
-- URLs Page After Bulk Creation  
-  ![URLs Page After Bulk](./Assets/URLs%20Page%20after%20Bulk%20Creation.png)
-
-- User Profile Settings  
-  ![Profile Settings](./Assets/User%20Profile%20Settings.png)
-
-- User Profile  
-  ![User Profile](./Assets/User%20Profile.png)
 
 ## License
 
